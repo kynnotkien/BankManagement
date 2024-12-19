@@ -191,8 +191,22 @@ class BankApp:
             password = password_entry.get()
             uid = str(uuid.uuid4())[:8]  # UID generate (only take 8)
             balance = balance_entry.get()
+
+            if not (name and email and password and balance):
+                messagebox.showerror("Error", "Please complete the form!")
+                return
+
+            try:
+                balance = float(balance)  # Validate balance is a number
+            except ValueError:
+                messagebox.showerror("Error", "Balance must be a valid number")
+                return
+            if self.find_user(email):
+                messagebox.showerror("Error", "Email is already registered!")
+                return
+
             new_user = User(name, email, password, "user", uid, balance)
-            self.add_user(new_user)  # Add user's infomation
+            self.add_user(new_user)  # Add user's information
             messagebox.showinfo("Success", "Account registered successfully!")
             register_window.destroy()
             self.show_login_screen()
@@ -256,6 +270,8 @@ class BankApp:
                     self.save_users()
                     refresh_user_list()
                     messagebox.showinfo("Success", f"User {email} deleted.")
+            else:
+                messagebox.showerror("Error", "Choose a user to delete!")
 
         def reset_password():
             """Reset password (change user's password to password123)"""
@@ -271,11 +287,13 @@ class BankApp:
                         "Success",
                         f"Password for {email} reset to '{new_password}'"
                     )
+            else:
+                messagebox.showerror("Error", "Please choose a user to reset!")
 
         # Admin interface
         admin_window = tk.Tk()
         admin_window.title("Admin Dashboard")
-        admin_window.geometry("800x800")
+        admin_window.geometry("600x400")
 
         columns = ("uid", "name", "email", "role", "balance")
         user_tree = ttk.Treeview(admin_window,
@@ -332,7 +350,7 @@ class BankApp:
         # User infterface
         user_window = tk.Tk()
         user_window.title("User Dashboard")
-        user_window.geometry("500x300")
+        user_window.geometry("600x400")
 
         tk.Label(user_window, text=f"Welcome, {self.current_user.get_name()}!",
                  font=('Arial', 20)).pack()
