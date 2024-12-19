@@ -1,4 +1,4 @@
 name,email,password,role,uid,balance
 Admin,admin@gmail.com,123456,admin,c483532e,1000.0
-User1,user1@gmail.com,123456,user,e0833d91,663.0
+User1,user1@gmail.com,123456,user,e0833d91,811.06
 User2,user2@gmail.com,123456,user,dd41042c,850.0

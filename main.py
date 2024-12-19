@@ -346,15 +346,18 @@ class BankApp:
                 self.show_user_screen()
             except ValueError:
                 messagebox.showerror("Error", "Invalid amount format.")
-        
+
         def deposit_money():
+            """Deposit money (add money to user's balance)"""
             amount_deposit_withdraw = amount_money_entry.get()
             if not amount_deposit_withdraw:
                 messagebox.showerror("Error", "Please fill in the field.")
                 return
             try:
                 amount_deposit_withdraw = float(amount_deposit_withdraw)
-                if amount_deposit_withdraw <= 0 or amount_deposit_withdraw > self.current_user.get_balance():
+                if amount_deposit_withdraw <= 0 or \
+                        amount_deposit_withdraw > \
+                        self.current_user.get_balance():
                     messagebox.showerror("Error", "Invalid amount.")
                     return
                 self.current_user.set_balance(
@@ -365,15 +368,18 @@ class BankApp:
                 self.show_user_screen()
             except ValueError:
                 messagebox.showerror("Error", "Invalid amount format.")
-                
+
         def withdraw_money():
+            """Withdraw money (subtract money from user's balance)"""
             amount_deposit_withdraw = amount_money_entry.get()
             if not amount_deposit_withdraw:
                 messagebox.showerror("Error", "Please fill in the field.")
                 return
             try:
                 amount_deposit_withdraw = float(amount_deposit_withdraw)
-                if amount_deposit_withdraw <= 0 or amount_deposit_withdraw > self.current_user.get_balance():
+                if (amount_deposit_withdraw <= 0 or
+                        amount_deposit_withdraw >
+                        self.current_user.get_balance()):
                     messagebox.showerror("Error", "Invalid amount.")
                     return
                 self.current_user.set_balance(
@@ -385,33 +391,75 @@ class BankApp:
             except ValueError:
                 messagebox.showerror("Error", "Invalid amount format.")
 
+        def calculate_interest():
+            """Calculate interest
+            (interest = interest_amount * balance / 100)"""
+            global interest_apply
+            interest = interest_amount.get()
+            times = interest_times.get()
+            if not interest or not times:
+                messagebox.showerror("Error", "Please fill in all fields.")
+                return
+            try:
+                interest = float(interest)
+                times = int(times)
+                if times <= 0:
+                    messagebox.showerror("Error", "Invalid times.")
+                    return
+                for i in range(times):
+                    interest = interest * self.current_user.get_balance() / 100
+                interest_apply = round(
+                    self.current_user.get_balance() + interest, 2)
+                new_balance.config(text=f"New balance: {interest_apply}")
+
+            except ValueError:
+                messagebox.showerror("Error", "Invalid amount format.")
+
+        def apply_interest():
+            self.current_user.set_balance(interest_apply)
+            self.save_users()
+            messagebox.showinfo("Success", "Interest applied.")
+            user_window.destroy()
+            self.show_user_screen()
+
         # User infterface
         user_window = tk.Tk()
         user_window.title("User Dashboard")
         user_window.geometry("600x400")
-        
-        main_user_frame = tk.Frame(user_window)
-        user_info_frame = tk.Frame(main_user_frame)
-        transfer_money_frame = tk.Frame(main_user_frame)
-        wd_dps_money_frame = tk.Frame(main_user_frame)
-        caculate_interest_frame = tk.Frame(main_user_frame)
-        
-        main_user_frame.pack()
-        user_info_frame.grid(column=0, row=0)
-        transfer_money_frame.grid(column=1, row=0)
-        wd_dps_money_frame.grid(column=0, row=1)
-        caculate_interest_frame.grid(column=1, row=1)
 
-        tk.Label(user_info_frame, text=f"Welcome, {self.current_user.get_name()}!",
-                 font=('Arial', 15)).grid()
-        tk.Label(user_info_frame, text=f"UID: {self.current_user.uid}").grid()
+        # Frames
+        main_user_frame = tk.Frame(user_window)
+        user_info_frame = tk.Frame(main_user_frame, padx=15, pady=15)
+        transfer_money_frame = tk.Frame(main_user_frame, padx=15, pady=15)
+        wd_dps_money_frame = tk.Frame(main_user_frame, padx=15, pady=15)
+        calculate_interest_frame = tk.Frame(main_user_frame, padx=0, pady=15)
+
+        main_user_frame.pack()
+        user_info_frame.grid(column=0, row=0, padx=15, pady=15)
+        transfer_money_frame.grid(column=1, row=0, padx=15, pady=15)
+        wd_dps_money_frame.grid(column=0, row=1, padx=15, pady=15)
+        calculate_interest_frame.grid(column=1, row=1, padx=15, pady=15)
+
+        # User information
+        tk.Label(
+            user_info_frame,
+            text=f"Welcome, {self.current_user.get_name()}!",
+            font=('Arial', 15)
+        ).grid()
+        tk.Label(
+            user_info_frame,
+            text=f"UID: {self.current_user.uid}",
+            font=('Arial', 15)
+        ).grid()
         tk.Label(
             user_info_frame,
             text=f"Balance: {self.current_user.get_balance()}",
             font=('Arial', 15)
         ).grid()
 
-        tk.Label(transfer_money_frame, text="Transfer Money", font=('Arial', 15)).grid()
+        # Transfer money
+        tk.Label(transfer_money_frame, text="Transfer Money",
+                 font=('Arial', 15)).grid()
         tk.Label(transfer_money_frame, text="Recipient Email:").grid()
         recipient_entry = tk.Entry(transfer_money_frame)
         recipient_entry.grid()
@@ -419,30 +467,43 @@ class BankApp:
         tk.Label(transfer_money_frame, text="Amount:").grid()
         amount_transfer_entry = tk.Entry(transfer_money_frame)
         amount_transfer_entry.grid()
+        tk.Button(transfer_money_frame, text="Transfer",
+                  command=transfer_money).grid()
 
-        tk.Button(transfer_money_frame, text="Transfer", command=transfer_money).grid()
-        
-        tk.Label(wd_dps_money_frame, text="Deposit / Withdraw money", font=('Arial', 15)).grid(column=0, row=0)
+        # Deposit / Withdraw money
+        tk.Label(wd_dps_money_frame, text="Deposit / Withdraw money",
+                 font=('Arial', 15)).grid(column=0, row=0)
         amount_money_entry = tk.Entry(wd_dps_money_frame)
         amount_money_entry.grid(column=0, row=1)
 
         wd_dps_money_frame_button = tk.Frame(wd_dps_money_frame)
         wd_dps_money_frame_button.grid(column=0, row=2)
-        tk.Button(wd_dps_money_frame_button, text="Deposit money", command=deposit_money).grid(column=0, row=0, padx=2.5)
-        tk.Button(wd_dps_money_frame_button, text="Withdraw money", command=withdraw_money).grid(column=1, row=0, padx=2.5)
+        tk.Button(wd_dps_money_frame_button, text="Deposit money",
+                  command=deposit_money).grid(column=0, row=0, padx=2, pady=2)
+        tk.Button(wd_dps_money_frame_button, text="Withdraw money",
+                  command=withdraw_money).grid(column=1, row=0, padx=2, pady=2)
+
+        tk.Label(calculate_interest_frame, text="Caculate interest")\
+            .grid(column=1, row=0)
+        tk.Label(calculate_interest_frame, text="Interest Amount:")\
+            .grid(column=0, row=1)
+        interest_amount = tk.Entry(calculate_interest_frame)
+        interest_amount.grid(column=1, row=1)
+
+        # Calculate interest
+        tk.Label(calculate_interest_frame, text="Interest Times:")\
+            .grid(column=0, row=2)
+        interest_times = tk.Entry(calculate_interest_frame)
+        interest_times.grid(column=1, row=2)
+        tk.Button(calculate_interest_frame, text="Calculate",
+                  command=calculate_interest).grid(column=0, row=3)
+
+        new_balance = tk.Label(calculate_interest_frame, text="New balance")
+        new_balance.grid(column=1, row=3)
+        tk.Button(calculate_interest_frame, text="Apply to your balance",
+                  command=apply_interest).grid(column=1, row=4)
         user_window.mainloop()
-        
-        tk.Label(caculate_interest_frame, text="Caculate interest").grid(column=0, row=0)
-        interest_amount = tk.Entry(caculate_interest_frame)
-        interest_amount.grid(column=0, row=1)
-
-        ym_options = ["month", "year"]
-        options_var = tk.StringVar(caculate_interest_frame)
-        options_var.set(ym_options[0])
-        ym_menu = tk.OptionMenu(caculate_interest_frame, options_var, *ym_options)
-        ym_menu.grid(column=1, row=1)
 
 
-# Main
-if __name__ == "__main__":
+if __name__ == "__main__":  # Run the application
     BankApp()
